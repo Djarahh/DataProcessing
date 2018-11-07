@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-# Name:
-# Student number:
+# Name: Yara Djaidoen
+# Student number: 11123117
 """
 This script scrapes IMDB and outputs a CSV file with highest rated movies.
 """
@@ -19,12 +19,6 @@ OUTPUT_CSV = 'movies.csv'
 def extract_movies(dom):
     """
     Extract a list of highest rated movies from DOM (of IMDB page).
-    Each movie entry should contain the following fields:
-    - Title
-    - Rating
-    - Year of release (only a number!)
-    - Actors/actresses (comma separated if more than one)
-    - Runtime (only a number!)
     """
 
     # Make a list of all movies with their information
