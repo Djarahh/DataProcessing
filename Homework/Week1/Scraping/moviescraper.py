@@ -6,7 +6,6 @@ This script scrapes IMDB and outputs a CSV file with highest rated movies.
 """
 
 import csv
-from film import Film
 from requests import get
 from requests.exceptions import RequestException
 from contextlib import closing
@@ -78,8 +77,6 @@ def save_csv(outfile, movies):
     writer.writerow(['Title', 'Rating', 'Year', 'Actors', 'Runtime'])
     for movie in movies:
         writer.writerow(movie)
-
-    # ADD SOME CODE OF YOURSELF HERE TO WRITE THE MOVIES TO DISK
 
 
 def simple_get(url):

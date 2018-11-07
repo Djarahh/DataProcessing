@@ -9,6 +9,7 @@ import csv
 import matplotlib.pyplot as plt
 from statistics import mean
 
+
 # Global constants for the input file, first and last year
 INPUT_CSV = "movies.csv"
 START_YEAR = 2008
@@ -23,10 +24,11 @@ if __name__ == "__main__":
         for row in reader:
             data_dict[row["Year"]].append(float(row["Rating"]))
 
+        # Take the average off the years
         for key in data_dict:
             data_dict[key] = sum(data_dict[key]) / float(len(data_dict[key]))
 
+        # Line graph showing the average score of movies per year
         plt.plot([key for key in data_dict], [data_dict[key] for key in data_dict])
-        # plt.axis()
-        # print(data_dict)
+        plt.suptitle('Average score of movies between 2008 and 2017', fontsize=16)
         plt.show()
