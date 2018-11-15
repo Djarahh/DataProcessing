@@ -7,7 +7,6 @@ This script visualizes data obtained from a .csv file
 
 import csv
 import matplotlib.pyplot as plt
-from statistics import mean
 
 
 # Global constants for the input file, first and last year
@@ -19,7 +18,7 @@ END_YEAR = 2018
 data_dict = {str(key): [] for key in range(START_YEAR, END_YEAR)}
 
 if __name__ == "__main__":
-    with open (INPUT_CSV, newline= "") as file:
+    with open(INPUT_CSV, newline="") as file:
         reader = csv.DictReader(file)
         for row in reader:
             data_dict[row["Year"]].append(float(row["Rating"]))
@@ -28,7 +27,7 @@ if __name__ == "__main__":
         for key in data_dict:
             data_dict[key] = sum(data_dict[key]) / float(len(data_dict[key]))
 
-        # Line graph showing the average score of movies per year
-        plt.plot([key for key in data_dict], [data_dict[key] for key in data_dict])
-        plt.suptitle('Average score of movies between 2008 and 2017', fontsize=16)
-        plt.show()
+    # Line graph showing the average score of movies per year
+    plt.plot([key for key in data_dict], [data_dict[key] for key in data_dict])
+    plt.suptitle('Average score of movies between 2008 and 2017', fontsize=16)
+    plt.show()
