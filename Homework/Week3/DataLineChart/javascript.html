@@ -1,0 +1,222 @@
+<!-- Student Name: Yara Djaidoen -->
+<!-- Studen ID: 11123117  -->
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Accidental drug related deaths</title>
+  </head>
+
+    <body>
+      <canvas id="myCanvas" width="600" height="600"></canvas>
+
+      <script type="text/javascript">
+        // for the layout
+        var canvas = document.getElementById("myCanvas");
+        var ctx = canvas.getContext('2d');
+
+
+        var fileName = "output.json";
+        var txtFile = new XMLHttpRequest();
+        txtFile.onreadystatechange = function() {
+            if (txtFile.readyState === 4 && txtFile.status == 200) {
+                var data = JSON.parse(txtFile.responseText);
+                // create a dictionary for every year
+                var dict = createDict(2012, 2017);
+                // fill dictionary with sexes
+                dict1 = fillDict(dict, data);
+                // make another dictionary with other data
+                var dict2 = anotherDict(2012, 2017);
+                // calculate the amount of male and female per year and put in another dict
+                femaleMaleTotal = calculateAmount(dict1, dict2);
+                console.log(femaleMaleTotal);
+
+                // axes to draw in x and y ax
+                drawGraph(femaleMaleTotal)
+
+
+                // fill out data in the graph
+                drawDataPoint1(femaleMaleTotal)
+                drawDataPoint2(femaleMaleTotal)
+                drawDataPoint3(femaleMaleTotal)
+            }
+        }
+        txtFile.open("GET", fileName);
+        txtFile.send();
+
+
+        // define domain and range
+        domainx = [2012, 2017]
+        rangex = [31, 480]
+        domainy = [0, 1100]
+        rangey = [200, 500]
+
+        function drawGraph(dict){
+          // name of the graph
+          ctx.strokeText("Accidental drug related deaths between 2012-2017 (USA)", 150,150)
+          ctx.strokeText("Total Deaths", 450, 250)
+          ctx.strokeText("Male Deaths", 450, 400)
+          ctx.strokeText("Female Deaths", 440, 460)
+
+          // draw the x and y ax
+          drawLine(ctx, 30, 500, 500, 500); //x
+          ctx.strokeText("Deaths per year", 5, 180)
+          drawLine(ctx, 30, 200, 30, 500); //y
+          ctx.strokeText("Year", 450, 510)
+          // draw the points on the x and y axes
+          var lastPoint = xvalue(2017)
+          var startPointx = rangex[0]
+          var lenghtDict = Object.keys(dict).length
+          var widthBlock = (lastPoint - startPointx)/lenghtDict
+          var i = 145
+          var x = 0
+          for (year in dict){
+            drawLine(ctx, xvalue(year), 510, xvalue(year), 500)
+            i = i + 55
+            var minusMax = 1200/6
+            drawLine(ctx, 15, i, 30, i)
+            ctx.strokeText((domainy[1] - x*minusMax), 5, i)
+            var x = x + 1
+            ctx.strokeText(year, xvalue(year), 520)
+          }
+        }
+
+        function createTransform(domain, range){
+          var domain_min = domain[0]
+          var domain_max = domain[1]
+          var range_min = range[0]
+          var range_max = range[1]
+
+          // formulas to calculate the alpha and the beta
+          var alpha = (range_max - range_min) / (domain_max - domain_min)
+          var beta = range_max - alpha * domain_max
+
+          // returns the function for the linear transformation (y= a * x + b)
+          return function(x){
+            return alpha * x + beta;
+          }
+        }
+
+        yvalue = createTransform(domainy, rangey)
+        xvalue = createTransform(domainx, rangex)
+
+        blue = "#6600ff"
+        green = "#33cc33"
+        red = "#ff0000"
+
+        function drawDataPoint1(dict){
+          ctx.beginPath()
+          y = (yvalue(dict[year][2]))
+          x = (xvalue(year))
+          ctx.moveTo(x, y);
+          for (year in dict){
+            y = (yvalue(dict[year][2]))
+            x = (xvalue(year))
+            ctx.lineTo(x, y)
+            drawRect(blue, x, y)
+            }
+          ctx.stroke()
+          }
+
+        function drawDataPoint2(dict){
+          ctx.beginPath()
+          y = (yvalue(dict[year][1]))
+          x = (xvalue(year))
+          ctx.moveTo(x, y);
+          for (year in dict){
+            y = (yvalue(dict[year][1]))
+            x = (xvalue(year))
+            ctx.lineTo(x, y)
+            drawRect(green, x, y)
+            }
+          ctx.stroke()
+          }
+
+        function drawDataPoint3(dict){
+          ctx.beginPath()
+          y = (yvalue(dict[year][0]))
+          x = (xvalue(year))
+          ctx.moveTo(x, y);
+          for (year in dict){
+            y = (yvalue(dict[year][0]))
+            x = (xvalue(year))
+            ctx.lineTo(x, y)
+              drawRect(red, x, y)
+            }
+          ctx.stroke()
+          }
+
+
+        function drawLine(ctx, startX, startY, endX, endY){
+        ctx.beginPath();
+        ctx.moveTo(startX,startY);
+        ctx.lineTo(endX,endY);
+        ctx.stroke();
+        }
+
+        function drawRect(colour, x, y){
+          ctx.fillStyle=colour
+          ctx.fillRect(x, y, 4, 4);
+        }
+
+        function createDict(start, end){
+          var dict = {};
+          var date;
+          for (date = start; date <= end; date++){
+            dict[date] = [];
+          }
+          return dict;
+        }
+
+        function fillDict(dict, data){
+          for (year in dict){
+            for (x in data){
+              if (year == data[x].Date){
+                dict[year].push(data[x].Sex);
+              }
+            }
+          }
+          return dict
+        }
+
+        function anotherDict(start, end){
+          var dict = {};
+          var date;
+          for (date = start; date <= end; date++){
+            dict[date] = [];
+          }
+          return dict;
+        }
+
+        function calculateAmount(dict1, dict2){
+          for (year in dict1){
+            femaleCounter = 0;
+            maleCounter = 0;
+            otherCounter = 0;
+            array = dict1[year]
+            for (let j = 0; j < array.length; j++){
+              if (array[j] == "Female"){
+                femaleCounter++;
+              }
+              else if (array[j] == "Male"){
+                maleCounter++;
+              }
+              else {
+                otherCounter++;
+              }
+            }
+          finalDict = fillMaleFemaleDict(year, dict2, femaleCounter, maleCounter);
+        }
+        return finalDict
+        }
+
+        function fillMaleFemaleDict(year, dict2, femaleCounter, maleCounter){
+          dict2[year].push(femaleCounter);
+          dict2[year].push(maleCounter);
+          total = femaleCounter + maleCounter;
+          dict2[year].push(total);
+          return dict2;
+        }
+      </script>
+    </body>
+</html>
