@@ -6,8 +6,6 @@ window.onload = function() {
   console.log('Yes, you can!')
 };
 
-
-
 var womenInScience = "http://stats.oecd.org/SDMX-JSON/data/MSTI_PUB/TH_WRXRS.FRA+DEU+KOR+NLD+PRT+GBR/all?startTime=2007&endTime=2015"
 var consConf = "http://stats.oecd.org/SDMX-JSON/data/HH_DASH/FRA+DEU+KOR+NLD+PRT+GBR.COCONF.A/all?startTime=2007&endTime=2015"
 
@@ -15,23 +13,58 @@ var requests = [d3.json(womenInScience), d3.json(consConf)];
 
 Promise.all(requests).then(function(response) {
     // Insert all other text outside of the SVG canvas
-    d3.select("body").append("h1").text("Percentage of women in science against consumer behaviour");
-    d3.select("body").append("p").text("Name: Yara Djaidoen, studen number: 11123117");
-    d3.select("body").append("p").text("This is a scatterplot that will show the percentage of women working in science to the consumer behaviour")
-    d3.select("body").append("p").text("Source: https://opendata.cbs.nl/statline/portal.html?_la=nl&_catalog=CBS&tableId=37422ned&_theme=70")
+    d3.select("#t").text("Percentage of women in science against consumer behaviour");
+    d3.select("#h").append("p").text("Name: Yara Djaidoen, studen number: 11123117");
+    d3.select("#h").append("p").text("This is a scatterplot that will show the percentage of women working in science to the consumer behaviour, hoover over the dots to see what year the dot represents. To get a better overview on how a country did, select a year from the dropdown menu")
 
-    // Transform all data to nice datasets to work with
+    // Transforms all data to usable data
     dataset = transformResponse(response[0], response[1]);
-    console.log(dataset)
-    drawDatapoints(dataset)
-.catch(function(e){
-   throw(e);
-  })
 
+    //Define size of SVG element and margins and colors
+    margins = {top: 30, bottom: 30, left: 50, right:30}
+    widthSVG = 900 - margins.left - margins.right;
+    heightSVG = 500 - margins.top - margins.bottom;
+    color = d3.schemeCategory10;
+
+    // Define a tooltip area in the webpage
+    tooltip = d3.select("body")
+                    .append("div")
+		                .attr("class", "tooltip")
+		                .style("opacity", 0);
+
+    //Create SVG canvas
+    svg = d3.select("body")
+            .append("svg")
+            .attr("width", widthSVG)
+            .attr("height", heightSVG)
+
+    // Append a title to the scatterplot
+    svg.append("text")
+        .attr("class", "title")
+        .attr("x", widthSVG/2)
+        .attr("y", margins.top/2)
+        .style("text-anchor", "middle")
+        .style("font-weight", "bold")
+        .text("Percentage of women working in science against consumer behaviour");
+
+    // Create scales for the axes and datapoints
+    yScale = d3.scaleLinear()
+               .domain([0, d3.max(dataset, function(d){
+                 return d.datapoint.women;
+               })])
+               .rangeRound([heightSVG - margins.bottom, margins.top])
+    xScale = d3.scaleLinear()
+               .domain(d3.extent(dataset, d => d.datapoint.consumer)).nice()
+               .range([margins.left, widthSVG - margins.right])
+
+    // Drawing the axises and datapoints in the graph
+    drawGraph(dataset)
+    // Draws all point in different colors in the scatterplot
+    getInfoDatapoint(dataset)
 });
 
-// Function that transoforms a dataset into something usable
-function transformResponse(dataset1, dataset2, setnumber){
+// Function that transoforms a dataset into usable dataset
+function transformResponse(dataset1, dataset2){
 
        // access data property of the response
        let dataHere1 = dataset1.dataSets[0].series;
@@ -105,57 +138,140 @@ function transformResponse(dataset1, dataset2, setnumber){
        return dataArray;
    }
 
-// Function to draw all datapoints
-function drawDatapoints(dataset){
-  //Define size of SVG element and margins
-  var margins = {top: 30, bottom: 30, left: 30, right:30}
-  var widthSVG = 900 - margins.left - margins.right;
-  var heightSVG = 500 - margins.top - margins.bottom;
-
-  //Create SVG canvas
-  var svg = d3.select("body")
-              .append("svg")
-              .attr("width", widthSVG)
-              .attr("height", heightSVG);
-
-  // Create scales for the axis
-  var yScale = d3.scaleLinear()
-                 .domain([0, d3.max(dataset, function(d){
-                   return d.datapoint.women;
-                 })])
-                 .rangeRound([heightSVG - margins.bottom, margins.top])
-// VRAAG OVER HET INZOOMEN (OFTEWEL HET DOMEIN VERANDEREN)
-  var xScale = d3.scaleLinear()
-                 // .domain(d3.extent(dataset, d => d.datapoint.consumer)).nice()
-                 .domain([0, d3.max(dataset, function(d){
-                   return d.datapoint.consumer;
-                 })])
-                 .range([margins.left, widthSVG - margins.right])
-
-  // Define x and y axes
+// Function to draw all the graph
+function drawGraph(dataset){
+  // Define the coordiantion of x and y ax
   var yAxis = d3.axisLeft(yScale)
   var xAxis = d3.axisBottom(xScale)
 
-  // Creates the yAxis and xAxis
+  // Creates the yAxis
   svg.append("g")
     .attr("class", "axis")
     .attr("transform", "translate(0" + margins.left + ")")
     .call(yAxis)
+
+  // Add text-label to y ax
+  svg.append("text")
+      .attr("class", "label")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 6)
+      .attr("dy", ".71em")
+      .style("text-anchor", "end")
+      .text("Women working in science (%)");
+
+  // Creates the xAxis
   svg.append("g")
      .attr("class", "axis")
      .attr("transform", "translate(0," + (heightSVG - margins.bottom) + ")")
      .call(xAxis)
 
-  // Draws Datapoints
-  svg.append("g")
-     .attr("stroke", "steelblue")
-     .attr("stroke-width", 1.5)
-     .attr("fill", "none")
-   .selectAll("circle")
-   .data(dataset)
-   .enter()
-   .append("circle")
-     .attr("cx", d => xScale(d.datapoint.consumer))
-     .attr("cy", d => yScale(d.datapoint.women))
-     .attr("r", 2);
+  // Add text to x-axis
+  svg.append("text")
+      .attr("class", "label")
+      .attr("x", widthSVG)
+      .attr("y", heightSVG)
+      .style("text-anchor", "end")
+      .text("Consumer Behaviour");
+
+  createLegend(dataset, widthSVG)
+
+  // Function that creates the legend
+  function createLegend(dataset){
+    legendValues = d3.set(dataset.map(function(d)
+                    {return d.Country})).values()
+
+    var legend = svg.selectAll(".legend")
+              		  .data(legendValues)
+              		  .enter().append("g")
+              		  .attr("class", "legend")
+              		  .attr("transform", function(d, i) { return "translate(10," + (i+7) * 20 + ")"; });
+
+    	  // draw legend colored rectangles
+    	  legend.append("rect")
+        		  .attr("x", widthSVG - 18)
+        		  .attr("width", 18)
+        		  .attr("height", 18)
+        		  .style("fill", function(d, i){return color[i]});
+
+    	  // draw legend text
+    	  legend.append("text")
+        		  .attr("x", widthSVG - 24)
+        		  .attr("y", 9)
+        		  .attr("dy", ".35em")
+        		  .style("text-anchor", "end")
+        		  .text(function(d) { return d;})
+  }
+}
+
+// Funcion that iterates over all datapoints in dataset
+function getInfoDatapoint(dataset){
+  for (i = 0; i < dataset.length; i++){
+    datapoint = dataset[i]
+    drawDatapoint(datapoint)
+    }
+  }
+
+// Function that draws all datapoints
+function drawDatapoint(data){
+  c = d3.scaleOrdinal().domain(legendValues).range(color)
+  svg.append("circle")
+     .attr("class", "dot")
+     .attr("cx", xScale(data.datapoint.consumer))
+     .attr("cy", yScale(data.datapoint.women))
+     .attr("r", 4)
+     .style("fill", function(d){
+       return c(data.Country)
+     })
+     .on('mouseover', d => {
+      tooltip.transition()
+         .duration(200)
+         .style('opacity', 0.9);
+      tooltip.html(data.time)
+         .style('left', d3.event.pageX + 'px')
+         .style('top', d3.event.pageY - 28 + 'px');
+    })
+    .on('mouseout', () => {
+      tooltip.transition()
+        .duration(500)
+        .style('opacity', 0);
+      })
+ }
+
+// Function that resets the graph
+function setGraph(){
+   updateGraph((document.getElementById("value-year").value))
+ }
+
+// Function that updates the graph
+function updateGraph(year){
+  Promise.all(requests).then(function(response) {
+
+   // Transforms all data to usable data
+   dataset = transformResponse(response[0], response[1]);
+
+   // Appends dataset to users input
+   newdata = getNewData(dataset, year)
+
+   // Removes the all dots in the graph
+   d3.selectAll(".dot").remove()
+
+   // Redraws all new datapoints in the scatterplot
+   getInfoDatapoint(newdata)
+ })
+}
+
+// Appends dataset to users input
+function getNewData(dataset, year){
+  if (year == "All years"){
+    newdata = dataset
+  }
+  else{
+     newdata = []
+     for (i = 0; i < dataset.length; i++){
+       if (dataset[i].time == year){
+         newdata.push(dataset[i])
+       }
+     }
+  }
+  return newdata
 }

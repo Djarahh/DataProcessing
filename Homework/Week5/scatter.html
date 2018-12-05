@@ -7,9 +7,27 @@ Student Number: 11123117 -->
     <meta charset="utf-8">
         <title>D3 Scatterplot</title>
         <script type="text/javascript" src="https://d3js.org/d3.v5.min.js"></script>
+        <link rel="stylesheet" href="scatter.css"></>
         <script type="text/javascript" src="scatter.js"></script>
   </head>
   <body>
+    <h1 id="t"></h1>
+    <p id="h"></p>
+    <!-- <a href="http://stats.oecd.org">Source of data</a> -->
+     <p><span><label for="Year">Select year</label></span>
+     <select id="value-year">
+       <option value="All years">All years</option>
+       <option value="2007">2007</option>
+       <option value="2008">2008</option>
+       <option value="2009">2009</option>
+       <option value="2010">2010</option>
+       <option value="2011">2011</option>
+       <option value="2012">2012</option>
+       <option value="2013">2013</option>
+       <option value="2014">2014</option>
+       <option value="2015">2015</option>
+     </select>
 
+     <button onclick="setGraph()">submit</button>
   </body>
 </html>
